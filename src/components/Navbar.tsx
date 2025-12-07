@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
     const [scrolled, setScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { user, logout } = useAuth();
 
     useEffect(() => {
@@ -39,7 +40,6 @@ export function Navbar() {
                             className="object-contain"
                         />
                     </div>
-
                 </Link>
 
                 {/* Desktop Menu */}
@@ -92,11 +92,40 @@ export function Navbar() {
                         </div>
                     )}
 
-                    <Button variant="ghost" size="icon" className="md:hidden">
+                    {/* Mobile Menu Button */}
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                         <Menu size={24} />
                     </Button>
                 </div>
             </div>
+
+            {/* Mobile Menu Dropdown */}
+            {mobileMenuOpen && (
+                <div className="md:hidden bg-white border-b border-slate-100 px-4 py-4 shadow-xl">
+                    <div className="flex flex-col space-y-4">
+                        <Link href="/" className="font-medium text-slate-900 border-b border-slate-50 pb-2" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                        <Link href="/about" className="font-medium text-slate-900 border-b border-slate-50 pb-2" onClick={() => setMobileMenuOpen(false)}>About Us</Link>
+                        <Link href="/privacy" className="font-medium text-slate-900 border-b border-slate-50 pb-2" onClick={() => setMobileMenuOpen(false)}>Privacy Policy</Link>
+                        <Link href="/register-driver" className="font-medium text-slate-900 border-b border-slate-50 pb-2" onClick={() => setMobileMenuOpen(false)}>Join as Driver</Link>
+
+                        <div className="pt-2">
+                            <p className="text-xs text-slate-500 uppercase font-bold mb-1">Customer Care</p>
+                            <a href="mailto:support@emergo.com" className="text-red-600 font-medium">support@emergo.com</a>
+                        </div>
+
+                        {!user && (
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button variant="outline" className="w-full">Login</Button>
+                                </Link>
+                                <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button className="w-full bg-red-600 text-white">Sign Up</Button>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </nav>
     );
 }
