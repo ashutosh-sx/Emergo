@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  /* Medical Theme - Clean, High Tech, Trustworthy */
+  /* User Requested Cream Background #FFFDD0 */
+  --background: 57 100% 91%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* Primary: Red (Emergency) but deep and rich */
+  --primary: 350 89% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Teal/Cyan (Medical/Tech) */
+  --secondary: 190 90% 95%;
+  --secondary-foreground: 190 100% 25%;
+
+  /* Accent: Navy (Trust/Foundation) */
+  --accent: 220 50% 95%;
+  --accent-foreground: 220 50% 15%;
+
+  --muted: 210 20% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 350 89% 60%;
+
+  --radius: 1rem;
+}
+
+/* Custom Utilities for Premium Feel */
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 20px rgba(244, 63, 94, 0.5);
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-xl;
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl;
+  }
+
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image:
+      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  }
+
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-scroll {
+    animation: scroll 40s linear infinite;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+}
