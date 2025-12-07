@@ -83,13 +83,13 @@ export function Hero() {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 1 }}
-                className="absolute right-0 top-0 bottom-0 w-1/2 hidden lg:block z-0"
+                className="absolute right-0 top-0 bottom-0 w-full lg:w-1/2 z-0"
             >
                 <div className="relative w-full h-full">
                     <img
                         src="/hero-ambulance.png"
                         alt="Emergency Ambulance in Action"
-                        className="object-cover w-full h-full opacity-90 mask-image-gradient"
+                        className="object-cover w-full h-full opacity-30 lg:opacity-90 mask-image-gradient"
                         style={{ maskImage: 'linear-gradient(to right, transparent, black 20%)' }}
                     />
                 </div>
