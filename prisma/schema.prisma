@@ -18,6 +18,8 @@ model User {
   phone     String
   createdAt DateTime  @default(now())
   bookings  Booking[]
+  resetToken       String?
+  resetTokenExpiry DateTime?
 }
 
 model Driver {
