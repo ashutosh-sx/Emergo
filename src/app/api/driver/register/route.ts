@@ -8,8 +8,11 @@ export async function POST(req: Request) {
         const data = await req.json();
 
         // Basic server-side validation
-        if (!data.name || !data.phone || !data.licenseNumber || !data.vehicleRegNumber) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const requiredFields = ['name', 'phone', 'licenseNumber', 'vehicleRegNumber', 'driverPhoto', 'ambulanceFrontPhoto', 'ambulanceInsidePhoto', 'ambulanceSidePhoto', 'driverIdPhoto', 'driverLicensePhoto'];
+        const missing = requiredFields.filter(field => !data[field]);
+
+        if (missing.length > 0) {
+            return NextResponse.json({ error: `Missing required fields: ${missing.join(', ')}` }, { status: 400 });
         }
 
         const checkExisting = await prisma.driver.findFirst({
@@ -33,6 +36,15 @@ export async function POST(req: Request) {
                 licenseNumber: data.licenseNumber,
                 vehicleType: data.vehicleType,
                 vehicleRegNumber: data.vehicleRegNumber,
+
+                // Save Photos
+                driverPhoto: data.driverPhoto,
+                ambulanceFrontPhoto: data.ambulanceFrontPhoto,
+                ambulanceInsidePhoto: data.ambulanceInsidePhoto,
+                ambulanceSidePhoto: data.ambulanceSidePhoto,
+                driverIdPhoto: data.driverIdPhoto,
+                driverLicensePhoto: data.driverLicensePhoto,
+
                 isVerified: false, // Default to unverified
             },
         });

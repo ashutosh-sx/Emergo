@@ -113,7 +113,29 @@ export function Navbar() {
                             <a href="mailto:support@emergo.com" className="text-red-600 font-medium">support@emergo.com</a>
                         </div>
 
-                        {!user && (
+                        {user ? (
+                            <div className="pt-4 border-t border-slate-50 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 font-bold">
+                                        {user.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-900">{user.name}</p>
+                                        <p className="text-xs text-slate-500">{user.phone}</p>
+                                    </div>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                                    onClick={() => {
+                                        logout();
+                                        setMobileMenuOpen(false);
+                                    }}
+                                >
+                                    Sign Out
+                                </Button>
+                            </div>
+                        ) : (
                             <div className="grid grid-cols-2 gap-4 pt-2">
                                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                                     <Button variant="outline" className="w-full">Login</Button>

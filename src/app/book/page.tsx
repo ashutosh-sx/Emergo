@@ -7,21 +7,27 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
-import { Loader2, CheckCircle2, AlertCircle, Ambulance, Cross, PhoneCall, Navigation } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Ambulance, Cross, PhoneCall, Navigation, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { LocationPicker } from "@/components/LocationPicker";
 import { useJsApiLoader, Libraries } from "@react-google-maps/api";
+import { format } from "date-fns";
 
 const bookingSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits"),
+    patientName: z.string().min(2, "Patient Name is required"),
+    condition: z.string().optional(),
     pickup: z.string().min(5, "Pickup location is required"),
     destination: z.string().min(5, "Destination is required"),
     type: z.enum(["Basic", "ICU"]),
-    date: z.string(),
+    bookingType: z.enum(["now", "schedule"]),
+    date: z.string().optional(),
+    time: z.string().optional(),
+    phone: z.string().min(10, "Phone number is required"),
+    alternatePhone: z.string().optional(),
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -69,29 +75,49 @@ export default function BookingPage() {
         resolver: zodResolver(bookingSchema),
         defaultValues: {
             type: "Basic",
-            date: new Date().toISOString().split('T')[0],
-            name: user?.name || "",
-            phone: "",
+            bookingType: "now",
+            patientName: "",
+            condition: "",
+            phone: user?.phone || "",
+            alternatePhone: "",
         },
     });
 
-    // Update form when user data is loaded
-    useEffect(() => {
-        if (user) {
-            form.setValue("name", user.name);
-        }
-    }, [user, form]);
+    const bookingType = form.watch("bookingType");
 
     const onSubmit = async (data: BookingFormValues) => {
         if (!user) return;
 
         setIsSubmitting(true);
         setError(null);
+
+        // Date Validation
+        let finalDate = new Date();
+        if (data.bookingType === 'schedule') {
+            if (!data.date || !data.time) {
+                setError("Please select both date and time for scheduled booking.");
+                setIsSubmitting(false);
+                return;
+            }
+            const selectedDateTime = new Date(`${data.date}T${data.time}`);
+            if (selectedDateTime < new Date()) {
+                setError("You cannot book for a past time.");
+                setIsSubmitting(false);
+                return;
+            }
+            finalDate = selectedDateTime;
+        }
+
         try {
             const response = await fetch("/api/bookings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...data, userId: user.id }),
+                body: JSON.stringify({
+                    ...data,
+                    userId: user.id,
+                    phone: user.phone, // Enforce consistent phone
+                    date: finalDate.toISOString(),
+                }),
             });
 
             if (!response.ok) throw new Error("Failed to book");
@@ -165,19 +191,33 @@ export default function BookingPage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name">Patient Name</Label>
-                                        <Input id="name" {...form.register("name")} placeholder="John Doe" />
-                                        {form.formState.errors.name && (
-                                            <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>
+                                        <Label htmlFor="patientName">Patient Name</Label>
+                                        <Input id="patientName" {...form.register("patientName")} placeholder="Patient Name" />
+                                        {form.formState.errors.patientName && (
+                                            <p className="text-red-500 text-xs">{form.formState.errors.patientName.message}</p>
                                         )}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="phone">Phone Number</Label>
-                                        <Input id="phone" {...form.register("phone")} placeholder="(555) 123-4567" />
-                                        {form.formState.errors.phone && (
-                                            <p className="text-red-500 text-xs">{form.formState.errors.phone.message}</p>
-                                        )}
+                                        <Input
+                                            id="phone"
+                                            {...form.register("phone")}
+                                            placeholder="Enter Phone Number"
+                                        />
                                     </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="alternatePhone">Alternate Phone (Optional)</Label>
+                                        <Input
+                                            id="alternatePhone"
+                                            {...form.register("alternatePhone")}
+                                            placeholder="Alternate Phone"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="condition">Patient Condition / Symptoms (Optional)</Label>
+                                    <Textarea id="condition" {...form.register("condition")} placeholder="Briefly describe what happened..." className="h-20" />
                                 </div>
 
                                 <div className="space-y-2">
@@ -205,6 +245,50 @@ export default function BookingPage() {
                                     )}
                                 </div>
 
+                                <div className="space-y-3">
+                                    <Label>Timing</Label>
+                                    <div className="flex gap-4 p-1 bg-slate-100 rounded-lg">
+                                        <button
+                                            type="button"
+                                            onClick={() => form.setValue("bookingType", "now")}
+                                            className={cn(
+                                                "flex-1 py-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2",
+                                                bookingType === "now" ? "bg-white shadow-sm text-red-600" : "text-slate-500 hover:text-slate-900"
+                                            )}
+                                        >
+                                            <Clock className="w-4 h-4" /> Book Now
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => form.setValue("bookingType", "schedule")}
+                                            className={cn(
+                                                "flex-1 py-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2",
+                                                bookingType === "schedule" ? "bg-white shadow-sm text-red-600" : "text-slate-500 hover:text-slate-900"
+                                            )}
+                                        >
+                                            <Calendar className="w-4 h-4" /> Schedule Later
+                                        </button>
+                                    </div>
+
+                                    {bookingType === "schedule" && (
+                                        <div className="grid grid-cols-2 gap-4 mt-4 animate-in fade-in slide-in-from-top-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">Date</Label>
+                                                <Input type="date" {...form.register("date")} min={new Date().toISOString().split('T')[0]} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">Time</Label>
+                                                <Input type="time" {...form.register("time")} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    {bookingType === "now" && (
+                                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                                            <Clock className="w-3 h-3" /> Ambulance will take approx 8-12 mins to reach.
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="space-y-2">
                                     <Label>Ambulance Type</Label>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -229,11 +313,6 @@ export default function BookingPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="date">Date</Label>
-                                    <Input id="date" type="date" {...form.register("date")} />
-                                </div>
-
                                 {error && (
                                     <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-center gap-2">
                                         <AlertCircle className="w-4 h-4" />
@@ -248,7 +327,7 @@ export default function BookingPage() {
                                             Processing...
                                         </>
                                     ) : (
-                                        "Confirm Booking"
+                                        bookingType === 'now' ? "Confirm Booking Now" : "Schedule Booking"
                                     )}
                                 </Button>
                             </form>

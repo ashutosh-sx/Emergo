@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, CheckCircle2, ShieldCheck, Ambulance } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, ShieldCheck, Ambulance, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function RegisterDriverPage() {
@@ -13,7 +13,13 @@ export default function RegisterDriverPage() {
         phone: "",
         licenseNumber: "",
         vehicleType: "Basic Life Support",
-        vehicleRegNumber: ""
+        vehicleRegNumber: "",
+        driverPhoto: "",
+        ambulanceFrontPhoto: "",
+        ambulanceInsidePhoto: "",
+        ambulanceSidePhoto: "",
+        driverIdPhoto: "",
+        driverLicensePhoto: ""
     });
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -23,10 +29,31 @@ export default function RegisterDriverPage() {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, [field]: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError("");
+
+        // Validate all photos are present
+        const requiredPhotos = ['driverPhoto', 'ambulanceFrontPhoto', 'ambulanceInsidePhoto', 'ambulanceSidePhoto', 'driverIdPhoto', 'driverLicensePhoto'];
+        const missingPhotos = requiredPhotos.filter(key => !formData[key as keyof typeof formData]);
+
+        if (missingPhotos.length > 0) {
+            setError(`Please upload all required photos. Missing: ${missingPhotos.join(', ')}`);
+            setLoading(false);
+            return;
+        }
 
         try {
             const res = await fetch("/api/driver/register", {
@@ -152,13 +179,44 @@ export default function RegisterDriverPage() {
                             </div>
                         </div>
 
+                        <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="font-semibold flex items-center gap-2"><Camera className="w-4 h-4" /> Required Document Photos</h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Driver Photo</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'driverPhoto')} required />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Ambulance Front (Plate Visible)</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ambulanceFrontPhoto')} required />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Ambulance Inside</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ambulanceInsidePhoto')} required />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Ambulance Side</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ambulanceSidePhoto')} required />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Driver Aadhar/ID</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'driverIdPhoto')} required />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Driver License (DL)</Label>
+                                    <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'driverLicensePhoto')} required />
+                                </div>
+                            </div>
+                        </div>
+
                         {error && (
                             <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">
                                 {error}
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800" disabled={loading}>
+                        <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={loading}>
                             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                             Submit Application
                         </Button>

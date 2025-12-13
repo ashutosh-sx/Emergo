@@ -5,13 +5,15 @@ import { z } from "zod";
 const prisma = new PrismaClient();
 
 const bookingSchema = z.object({
-    name: z.string().min(2),
-    phone: z.string().min(10),
+    patientName: z.string().min(2),
+    condition: z.string().optional(),
     pickup: z.string().min(5),
     destination: z.string().min(5),
     type: z.string(),
     date: z.string(), // ISO date string
     userId: z.string().optional(),
+    phone: z.string().min(10, "Phone number required"),
+    alternatePhone: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -21,14 +23,16 @@ export async function POST(req: Request) {
 
         const booking = await prisma.booking.create({
             data: {
-                guestName: validatedData.name,
-                guestPhone: validatedData.phone,
+                patientName: validatedData.patientName,
+                condition: validatedData.condition,
                 pickup: validatedData.pickup,
                 destination: validatedData.destination,
                 type: validatedData.type,
                 date: new Date(validatedData.date),
                 status: "confirmed", // Auto-confirm for demo
                 userId: validatedData.userId || undefined,
+                guestPhone: validatedData.phone,
+                alternatePhone: validatedData.alternatePhone,
             },
         });
 

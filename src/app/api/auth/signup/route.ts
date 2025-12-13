@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         const token = generateToken({ userId: user.id, email: user.email, name: user.name });
 
         const response = NextResponse.json({
-            user: { id: user.id, name: user.name, email: user.email }
+            user: { id: user.id, name: user.name, email: user.email, phone: user.phone }
         });
 
         response.cookies.set("token", token, {

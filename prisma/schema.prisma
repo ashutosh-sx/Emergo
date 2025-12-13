@@ -17,9 +17,9 @@ model User {
   password  String
   phone     String
   createdAt DateTime  @default(now())
-  bookings  Booking[]
-  resetToken       String?
+  resetToken String?
   resetTokenExpiry DateTime?
+  bookings        Booking[]
 }
 
 model Driver {
@@ -29,6 +29,15 @@ model Driver {
   licenseNumber   String    @unique
   vehicleType     String
   vehicleRegNumber String   @unique
+  
+  // Photos (Base64 strings)
+  driverPhoto           String?
+  ambulanceFrontPhoto   String?
+  ambulanceInsidePhoto  String?
+  ambulanceSidePhoto    String?
+  driverIdPhoto         String?
+  driverLicensePhoto    String?
+
   isVerified      Boolean   @default(false)
   isAvailable     Boolean   @default(true)
   currentLat      Float?
@@ -54,6 +63,11 @@ model Booking {
   // Legacy fields (optional if user not logged in initially, but we want enforced login)
   guestName   String?
   guestPhone  String?
+
+  // New fields
+  patientName   String?
+  condition     String?
+  alternatePhone String?
 
   createdAt   DateTime @default(now())
 }
